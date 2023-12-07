@@ -17,6 +17,8 @@ const (
 
 type HTTPConfig interface {
 	Address() string
+	GetTimeout() time.Duration
+	GetIdleTimeout() time.Duration
 }
 
 type httpConfig struct {
@@ -38,11 +40,21 @@ func NewHTTPConfig() (HTTPConfig, error) {
 	}
 
 	return &httpConfig{
-		host: host,
-		port: port,
+		host:        host,
+		port:        port,
+		timeout:     4 * time.Second,  //todo
+		idleTimeout: 30 * time.Second, //todo
 	}, nil
 }
 
-func (cfg *httpConfig) Address() string {
-	return net.JoinHostPort(cfg.host, cfg.port)
+func (c *httpConfig) Address() string {
+	return net.JoinHostPort(c.host, c.port)
+}
+
+func (c *httpConfig) GetTimeout() time.Duration {
+	return c.timeout
+}
+
+func (c *httpConfig) GetIdleTimeout() time.Duration {
+	return c.idleTimeout
 }

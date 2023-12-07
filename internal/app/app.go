@@ -68,8 +68,11 @@ func (a *App) initHTTPServer(_ context.Context) error {
 	handler := a.initHttpRoutesAndMiddleware()
 
 	a.httpServer = &http.Server{
-		Addr:    a.serviceProvider.HTTPConfig().Address(),
-		Handler: handler,
+		Addr:         a.serviceProvider.HTTPConfig().Address(),
+		Handler:      handler,
+		IdleTimeout:  a.serviceProvider.HTTPConfig().GetIdleTimeout(),
+		ReadTimeout:  a.serviceProvider.HTTPConfig().GetTimeout(),
+		WriteTimeout: a.serviceProvider.HTTPConfig().GetTimeout(),
 	}
 
 	return nil
