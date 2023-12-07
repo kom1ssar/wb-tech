@@ -21,7 +21,6 @@ func NewClient(ctx context.Context, config config.DBConfig) (*pgxpool.Pool, erro
 	var pool *pgxpool.Pool
 	var err error
 
-	maxAttempts := 3
 	delay := 3 * time.Second
 
 	err = utils.DoWithTries(func() error {
@@ -35,7 +34,7 @@ func NewClient(ctx context.Context, config config.DBConfig) (*pgxpool.Pool, erro
 		}
 		return nil
 
-	}, maxAttempts, delay)
+	}, config.GetMaxAttempts(), delay)
 
 	if err != nil {
 		return nil, err
