@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"tech-wb/api/order"
 	"tech-wb/internal/config"
-	"tech-wb/internal/infrastructure/storage"
+	"tech-wb/pkg/client/postgresql"
 )
 
 type App struct {
@@ -75,12 +75,20 @@ func (a *App) initHTTPServer(_ context.Context) error {
 	return nil
 }
 
-func (a *App) connectDB(_ context.Context) error {
-	db := storage.NewConnection(a.serviceProvider.DBConfig())
+func (a *App) connectDB(ctx context.Context) error {
+	//db := storage.NewConnection(a.serviceProvider.DBConfig())
+	//a.serviceProvider.dbService = db
+	//
+	//return nil
+	db, err := postgresql.NewClient(ctx, a.serviceProvider.DBConfig())
+
+	if err != nil {
+		return err
+	}
+
 	a.serviceProvider.dbService = db
 
 	return nil
-
 }
 
 func (a *App) initHttpRoutesAndMiddleware() *chi.Mux {

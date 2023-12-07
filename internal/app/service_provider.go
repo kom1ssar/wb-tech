@@ -6,9 +6,9 @@ import (
 	"tech-wb/internal/config"
 	"tech-wb/internal/infrastructure/repository"
 	orderRepository "tech-wb/internal/infrastructure/repository/order"
-	"tech-wb/internal/infrastructure/storage"
 	"tech-wb/internal/service"
 	orderService "tech-wb/internal/service/order"
+	"tech-wb/pkg/client/postgresql"
 )
 
 type serviceProvider struct {
@@ -16,7 +16,7 @@ type serviceProvider struct {
 
 	cfgConfig config.DBConfig
 
-	dbService *storage.Postgres
+	dbService postgresql.Client
 
 	orderService service.OrderService
 

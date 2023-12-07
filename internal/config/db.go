@@ -1,17 +1,19 @@
 package config
 
 import (
+	"fmt"
 	"github.com/pkg/errors"
 	"os"
 	"strconv"
 )
 
 const (
-	dbHost     = "DB_HOST"
-	dbPort     = "DB_PORT"
-	dbUser     = "DB_USER"
-	dbPassword = "DB_PASSWORD"
-	dbName     = "DB_NAME"
+	dbHost        = "DB_HOST"
+	dbPort        = "DB_PORT"
+	dbUser        = "DB_USER"
+	dbPassword    = "DB_PASSWORD"
+	dbName        = "DB_NAME"
+	dbMaxAttempts = "DB_MAX_ATTEMPTS"
 )
 
 type DBConfig interface {
@@ -20,14 +22,17 @@ type DBConfig interface {
 	GetUser() string
 	GetPassword() string
 	GetName() string
+	GetMaxAttempts() int
+	GetDSN() string
 }
 
 type dbConfig struct {
-	host     string
-	port     uint16
-	user     string
-	password string
-	name     string
+	host        string
+	port        uint16
+	user        string
+	password    string
+	name        string
+	maxAttempts int
 }
 
 func NewDBConfig() (DBConfig, error) {
@@ -55,17 +60,28 @@ func NewDBConfig() (DBConfig, error) {
 		return nil, errors.New("[.env] db name not found")
 	}
 
+	maxAttempts := os.Getenv(dbMaxAttempts)
+	if len(port) == 0 {
+		return nil, errors.New("[.env] db maxAttempts not found")
+	}
+
 	portInt, err := strconv.Atoi(port)
 	if err != nil {
 		return nil, errors.New("[.env] db port error parse to int")
 	}
 
+	maxAttemptsInt, err := strconv.Atoi(maxAttempts)
+	if err != nil {
+		return nil, errors.New("[.env] db maxAttempts  error parse to int")
+	}
+
 	return &dbConfig{
-		host:     host,
-		port:     uint16(portInt),
-		user:     user,
-		password: password,
-		name:     name,
+		host:        host,
+		port:        uint16(portInt),
+		user:        user,
+		password:    password,
+		name:        name,
+		maxAttempts: maxAttemptsInt,
 	}, nil
 }
 
@@ -88,4 +104,12 @@ func (c *dbConfig) GetPassword() string {
 
 func (c *dbConfig) GetName() string {
 	return c.name
+}
+
+func (c *dbConfig) GetDSN() string {
+	return fmt.Sprintf("postgresql://%s:%s@%s:%d/%s", c.user, c.password, c.host, c.port, c.name)
+}
+
+func (c *dbConfig) GetMaxAttempts() int {
+	return c.maxAttempts
 }
