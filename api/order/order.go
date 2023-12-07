@@ -5,7 +5,7 @@ import (
 	"tech-wb/internal/api/order"
 )
 
-func RegisterUserRoutes(router *chi.Mux, impl *order.Implementation) {
+func RegisterRoutes(router *chi.Mux, impl *order.Implementation) {
 
 	router.Get("/order/{id}", impl.GetOrderById())
 

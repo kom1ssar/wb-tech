@@ -91,7 +91,7 @@ func (a *App) initHttpRoutesAndMiddleware() *chi.Mux {
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
 
-	order.RegisterUserRoutes(router, a.serviceProvider.OrderImpl())
+	order.RegisterRoutes(router, a.serviceProvider.OrderImpl())
 
 	return router
 }
