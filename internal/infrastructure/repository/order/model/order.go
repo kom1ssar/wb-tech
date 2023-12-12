@@ -8,8 +8,8 @@ import (
 )
 
 type Order struct {
-	OrderUid          string
-	TrackNumber       string
+	OrderUid          string `json:"order_uid"`
+	TrackNumber       string `json:"track_number"`
 	Entry             string
 	Delivery          repoDelivery.Delivery
 	Payment           repoPayment.Payment

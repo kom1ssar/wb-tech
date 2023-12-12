@@ -1,0 +1,41 @@
+version: '3'
+
+services:
+  nats-streaming-1:
+    image: nats-streaming
+    container_name: nats-streaming-1
+    command: ["-p", "4222", "--cluster", "nats://nats-streaming-1:6222", "--cluster_name", "my-cluster"]
+    ports:
+      - "4222:4222"
+      - "6222:6222"
+    networks:
+      - nats-cluster
+    environment:
+      - NATS_CLUSTER_NODE=nats://nats-streaming-1:6222
+
+  nats-streaming-2:
+    image: nats-streaming
+    container_name: nats-streaming-2
+    command: ["sh", "-c", "sleep 5 && nats-streaming -p 4222 --cluster nats://nats-streaming-2:6222 --cluster_name my-cluster --routes $NATS_CLUSTER_NODE"]
+    depends_on:
+      - nats-streaming-1
+    networks:
+      - nats-cluster
+    environment:
+      - NATS_CLUSTER_NODE=nats://nats-streaming-1:6222
+
+  nats-streaming-3:
+    image: nats-streaming
+    container_name: nats-streaming-3
+    command: ["sh", "-c", "sleep 10 && nats-streaming -p 4222 --cluster nats://nats-streaming-3:6222 --cluster_name my-cluster --routes $NATS_CLUSTER_NODE"]
+    depends_on:
+      - nats-streaming-1
+      - nats-streaming-2
+    networks:
+      - nats-cluster
+    environment:
+      - NATS_CLUSTER_NODE=nats://nats-streaming-1:6222
+
+networks:
+  nats-cluster:
+    driver: bridge

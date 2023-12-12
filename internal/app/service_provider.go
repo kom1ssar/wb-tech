@@ -8,6 +8,7 @@ import (
 	orderRepository "tech-wb/internal/infrastructure/repository/order"
 	"tech-wb/internal/service"
 	orderService "tech-wb/internal/service/order"
+	nats_streaming "tech-wb/pkg/client/nats-streaming"
 	"tech-wb/pkg/client/postgresql"
 )
 
@@ -16,7 +17,11 @@ type serviceProvider struct {
 
 	cfgConfig config.DBConfig
 
+	natsStreamingConfig config.NatsStreamConfig
+
 	dbService postgresql.Client
+
+	queueService nats_streaming.Client
 
 	orderService service.OrderService
 
@@ -53,6 +58,19 @@ func (s *serviceProvider) DBConfig() config.DBConfig {
 
 	return s.cfgConfig
 
+}
+
+func (s *serviceProvider) NatsStreamingConfig() config.NatsStreamConfig {
+	if s.natsStreamingConfig == nil {
+
+		cfg, err := config.NewNatsStreamingConfig()
+		if err != nil {
+			log.Fatalf("failed to get Nats Streaming config %s", err.Error())
+		}
+		s.natsStreamingConfig = cfg
+	}
+
+	return s.natsStreamingConfig
 }
 
 func (s *serviceProvider) OrderRepository() repository.OrderRepository {
