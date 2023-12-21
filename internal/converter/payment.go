@@ -3,7 +3,6 @@ package converter
 import (
 	"tech-wb/internal/model"
 	desc "tech-wb/pkg/gen/proto/order_v1"
-	"time"
 )
 
 func PaymentToModelFromDesc(payment *desc.Payment) *model.Payment {
@@ -14,7 +13,7 @@ func PaymentToModelFromDesc(payment *desc.Payment) *model.Payment {
 		Transaction:  payment.Transaction,
 		Provider:     payment.Provider,
 		Amount:       int(payment.Amount),
-		PaymentDt:    time.Time{},
+		PaymentDt:    payment.PaymentDt.AsTime(),
 		Bank:         payment.Bank,
 		DeliveryCost: int(payment.DeliveryCost),
 		GoodsTotal:   int(payment.GoodsTotal),

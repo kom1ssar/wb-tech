@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"tech-wb/internal/model"
 	desc "tech-wb/pkg/gen/proto/order_v1"
-	"time"
 )
 
 func OrderToModelFromDesc(order *desc.Order) *model.Order {
@@ -35,7 +34,7 @@ func OrderToModelFromDesc(order *desc.Order) *model.Order {
 		DeliveryService:   order.DeliveryService,
 		Shardkey:          order.ShardKey,
 		SmId:              int(order.SmId),
-		DateCreated:       time.Time{},
+		DateCreated:       order.DateCreated.AsTime(),
 		OofShard:          order.OofShard,
 	}
 }
