@@ -80,6 +80,11 @@ func (a *App) initHTTPServer(ctx context.Context) error {
 	return nil
 }
 
+func (a *App) initSubscriptionQueue(ctx context.Context) {
+	a.serviceProvider.OrderSubscriptions().Subscribe(ctx)
+
+}
+
 func (a *App) connectDB(ctx context.Context) error {
 	db, err := postgresql.NewClient(ctx, a.serviceProvider.DBConfig())
 
@@ -99,7 +104,7 @@ func (a *App) connectQueue(ctx context.Context) error {
 	}
 
 	a.serviceProvider.queueService = *sc
-
+	a.initSubscriptionQueue(ctx)
 	return nil
 }
 

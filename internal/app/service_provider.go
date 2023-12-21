@@ -4,8 +4,12 @@ import (
 	"log"
 	"tech-wb/internal/api/order"
 	"tech-wb/internal/config"
+	"tech-wb/internal/event"
+	order_events "tech-wb/internal/event/order"
 	"tech-wb/internal/infrastructure/repository"
 	orderRepository "tech-wb/internal/infrastructure/repository/order"
+	"tech-wb/internal/infrastructure/transaction"
+	order_transaction "tech-wb/internal/infrastructure/transaction/order"
 	"tech-wb/internal/service"
 	orderService "tech-wb/internal/service/order"
 	nats_streaming "tech-wb/pkg/client/nats-streaming"
@@ -28,6 +32,10 @@ type serviceProvider struct {
 	orderRepository repository.OrderRepository
 
 	orderImpl *order.Implementation
+
+	orderSubscriptions event.OrderSubscriptions
+
+	orderTransaction transaction.OrderTransaction
 }
 
 func newServiceProvider() *serviceProvider {
@@ -84,7 +92,7 @@ func (s *serviceProvider) OrderRepository() repository.OrderRepository {
 
 func (s *serviceProvider) OrderService() service.OrderService {
 	if s.orderService == nil {
-		s.orderService = orderService.NewService(s.OrderRepository())
+		s.orderService = orderService.NewService(s.OrderRepository(), s.OrderTransaction())
 	}
 	return s.orderService
 }
@@ -96,4 +104,19 @@ func (s *serviceProvider) OrderImpl() *order.Implementation {
 
 	return s.orderImpl
 
+}
+
+func (s serviceProvider) OrderSubscriptions() event.OrderSubscriptions {
+	if s.orderSubscriptions == nil {
+		s.orderSubscriptions = order_events.NewOrderSubscriptions(s.queueService, s.OrderService())
+	}
+	return s.orderSubscriptions
+}
+
+func (s *serviceProvider) OrderTransaction() transaction.OrderTransaction {
+	if s.orderTransaction == nil {
+		s.orderTransaction = order_transaction.NewOrderTransaction(s.dbService)
+	}
+
+	return s.orderTransaction
 }
