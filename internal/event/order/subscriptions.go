@@ -29,15 +29,19 @@ func (s *subscriptions) orderNew(ctx context.Context) {
 	orderProto := desc.Order{}
 
 	s.queueService.Subscribe(subject, func(msg *stan.Msg) {
+
 		if err := proto.Unmarshal(msg.Data, &orderProto); err != nil {
 			log.Printf("Failed to unmarshal message: %v", err)
 			fmt.Printf(err.Error())
 			return
 		}
-		fmt.Printf("%+v\n", orderProto.Payment)
 
 		order := converter.OrderToModelFromDesc(&orderProto)
-		s.orderService.Create(ctx, order)
+
+		err := s.orderService.Create(ctx, order)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
 
 	})
 

@@ -2,22 +2,30 @@ package order
 
 import (
 	"context"
-	"github.com/pkg/errors"
+	"errors"
+	"fmt"
 	"tech-wb/internal/model"
-	"tech-wb/pkg/utils/validation"
 )
 
 func (s *service) GetByUUId(ctx context.Context, uuid string) (*model.Order, error) {
-	if !validation.UUID(uuid) {
 
-		return nil, errors.New("Invalid order UUID")
+	if len(uuid) <= 0 {
+		return nil, errors.New("invalid order UUID")
+
 	}
 
-	order, err := s.orderRepository.GetByUUId(ctx, uuid)
+	o := s.orderCache.Get(uuid)
+
+	if o != nil {
+		fmt.Println("from cache")
+		return o, nil
+	}
+
+	o, err := s.orderRepository.GetByUUId(ctx, uuid)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return order, nil
+	return o, nil
 }

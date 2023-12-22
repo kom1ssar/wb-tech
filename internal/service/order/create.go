@@ -24,6 +24,9 @@ func (s *service) Create(ctx context.Context, order *model.Order) error {
 		fmt.Println(err)
 		return err
 	}
+
+	s.orderCache.Set(order.OrderUid, order)
+
 	return nil
 
 }

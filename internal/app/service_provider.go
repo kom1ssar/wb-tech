@@ -5,14 +5,16 @@ import (
 	"tech-wb/internal/api/order"
 	"tech-wb/internal/config"
 	"tech-wb/internal/event"
-	order_events "tech-wb/internal/event/order"
+	orderEvents "tech-wb/internal/event/order"
+	"tech-wb/internal/infrastructure/cache"
+	orderCache "tech-wb/internal/infrastructure/cache/order"
 	"tech-wb/internal/infrastructure/repository"
 	orderRepository "tech-wb/internal/infrastructure/repository/order"
 	"tech-wb/internal/infrastructure/transaction"
-	order_transaction "tech-wb/internal/infrastructure/transaction/order"
+	orderTransaction "tech-wb/internal/infrastructure/transaction/order"
 	"tech-wb/internal/service"
 	orderService "tech-wb/internal/service/order"
-	nats_streaming "tech-wb/pkg/client/nats-streaming"
+	natsStreaming "tech-wb/pkg/client/nats-streaming"
 	"tech-wb/pkg/client/postgresql"
 )
 
@@ -25,7 +27,7 @@ type serviceProvider struct {
 
 	dbService postgresql.Client
 
-	queueService nats_streaming.Client
+	queueService natsStreaming.Client
 
 	orderService service.OrderService
 
@@ -36,6 +38,8 @@ type serviceProvider struct {
 	orderSubscriptions event.OrderSubscriptions
 
 	orderTransaction transaction.OrderTransaction
+
+	orderCache cache.OrderCache
 }
 
 func newServiceProvider() *serviceProvider {
@@ -92,8 +96,13 @@ func (s *serviceProvider) OrderRepository() repository.OrderRepository {
 
 func (s *serviceProvider) OrderService() service.OrderService {
 	if s.orderService == nil {
-		s.orderService = orderService.NewService(s.OrderRepository(), s.OrderTransaction())
+		s.orderService = orderService.NewService(
+			s.OrderRepository(),
+			s.OrderTransaction(),
+			s.OrderCache(),
+		)
 	}
+
 	return s.orderService
 }
 
@@ -106,17 +115,26 @@ func (s *serviceProvider) OrderImpl() *order.Implementation {
 
 }
 
-func (s serviceProvider) OrderSubscriptions() event.OrderSubscriptions {
+func (s *serviceProvider) OrderSubscriptions() event.OrderSubscriptions {
 	if s.orderSubscriptions == nil {
-		s.orderSubscriptions = order_events.NewOrderSubscriptions(s.queueService, s.OrderService())
+		s.orderSubscriptions = orderEvents.NewOrderSubscriptions(s.queueService, s.OrderService())
 	}
 	return s.orderSubscriptions
 }
 
 func (s *serviceProvider) OrderTransaction() transaction.OrderTransaction {
 	if s.orderTransaction == nil {
-		s.orderTransaction = order_transaction.NewOrderTransaction(s.dbService)
+		s.orderTransaction = orderTransaction.NewOrderTransaction(s.dbService)
 	}
 
 	return s.orderTransaction
+}
+
+func (s *serviceProvider) OrderCache() cache.OrderCache {
+	if s.orderCache == nil {
+		s.orderCache = orderCache.NewOrderCache()
+	}
+
+	return s.orderCache
+
 }
