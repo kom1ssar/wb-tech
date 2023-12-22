@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/jackc/pgx/v4"
 	"log"
+	"tech-wb/internal/infrastructure/cache"
 	def "tech-wb/internal/infrastructure/transaction"
 	"tech-wb/internal/model"
 	"tech-wb/pkg/client/postgresql"
@@ -13,7 +14,8 @@ import (
 var _ def.OrderTransaction = (*transaction)(nil)
 
 type transaction struct {
-	db postgresql.Client
+	db    postgresql.Client
+	cache cache.OrderCache
 }
 
 func (t *transaction) Insert(ctx context.Context, order *model.Order) error {
@@ -52,6 +54,8 @@ func (t *transaction) Insert(ctx context.Context, order *model.Order) error {
 	if err != nil {
 		return err
 	}
+
+	t.cache.Set(order.OrderUid, order)
 
 	return nil
 }
@@ -169,9 +173,10 @@ func (t *transaction) insertItems(ctx context.Context, orderId string, tx pgx.Tx
 	return nil
 }
 
-func NewOrderTransaction(db postgresql.Client) *transaction {
+func NewOrderTransaction(db postgresql.Client, c cache.OrderCache) *transaction {
 	return &transaction{
-		db: db,
+		db:    db,
+		cache: c,
 	}
 
 }

@@ -87,7 +87,7 @@ func (s *serviceProvider) NatsStreamingConfig() config.NatsStreamConfig {
 
 func (s *serviceProvider) OrderRepository() repository.OrderRepository {
 	if s.orderRepository == nil {
-		s.orderRepository = orderRepository.NewRepository(s.dbService)
+		s.orderRepository = orderRepository.NewRepository(s.dbService, s.OrderCache())
 	}
 
 	return s.orderRepository
@@ -99,7 +99,6 @@ func (s *serviceProvider) OrderService() service.OrderService {
 		s.orderService = orderService.NewService(
 			s.OrderRepository(),
 			s.OrderTransaction(),
-			s.OrderCache(),
 		)
 	}
 
@@ -124,7 +123,7 @@ func (s *serviceProvider) OrderSubscriptions() event.OrderSubscriptions {
 
 func (s *serviceProvider) OrderTransaction() transaction.OrderTransaction {
 	if s.orderTransaction == nil {
-		s.orderTransaction = orderTransaction.NewOrderTransaction(s.dbService)
+		s.orderTransaction = orderTransaction.NewOrderTransaction(s.dbService, s.OrderCache())
 	}
 
 	return s.orderTransaction

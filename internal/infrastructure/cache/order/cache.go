@@ -21,17 +21,12 @@ func (c *orderCache) Set(key string, value *model.Order) error {
 	return nil
 }
 
-func (c *orderCache) Get(key string) *model.Order {
+func (c *orderCache) Get(key string) (*model.Order, bool) {
 	c.m.RLock()
 	defer c.m.RUnlock()
 
 	order, ok := c.data[key]
-
-	if !ok {
-		return nil
-	}
-
-	return order
+	return order, ok
 }
 
 func NewOrderCache() cache.OrderCache {
