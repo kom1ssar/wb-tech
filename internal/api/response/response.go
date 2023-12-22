@@ -17,9 +17,10 @@ func OK() Response {
 	}
 }
 
-func Error(msg string) Response {
+func Error(msg string, statusCode int) Response {
 	return Response{
-		Status: StatusError,
-		Error:  msg,
+		Status:     StatusError,
+		Error:      msg,
+		StatusCode: statusCode,
 	}
 }

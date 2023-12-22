@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 	"log"
 	"net/http"
 	"tech-wb/api/order"
@@ -115,6 +116,11 @@ func (a *App) initHttpRoutesAndMiddleware(ctx context.Context) *chi.Mux {
 	router.Use(middleware.Logger)
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
+
+	router.Use(cors.Handler(cors.Options{
+		AllowedOrigins: []string{"https://*", "http://*"},
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+	}))
 
 	order.RegisterRoutes(ctx, router, a.serviceProvider.OrderImpl())
 

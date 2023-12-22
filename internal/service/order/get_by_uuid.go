@@ -27,5 +27,9 @@ func (s *service) GetByUUId(ctx context.Context, uuid string) (*model.Order, err
 		return nil, err
 	}
 
+	if len(o.OrderUid) == 0 {
+		return nil, nil
+	}
+
 	return o, nil
 }
