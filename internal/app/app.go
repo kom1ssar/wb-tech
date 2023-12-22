@@ -4,10 +4,12 @@ import (
 	"context"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 	"log"
 	"net/http"
 	"tech-wb/api/order"
 	"tech-wb/internal/config"
+	"tech-wb/pkg/client/nats-streaming"
 	"tech-wb/pkg/client/postgresql"
 )
 
@@ -41,6 +43,7 @@ func (a *App) initDeps(ctx context.Context) error {
 		a.initConfig,
 		a.initServiceProvider,
 		a.connectDB,
+		a.connectQueue,
 		a.initHTTPServer,
 	}
 
@@ -63,9 +66,9 @@ func (a *App) initConfig(_ context.Context) error {
 	return nil
 }
 
-func (a *App) initHTTPServer(_ context.Context) error {
+func (a *App) initHTTPServer(ctx context.Context) error {
 
-	handler := a.initHttpRoutesAndMiddleware()
+	handler := a.initHttpRoutesAndMiddleware(ctx)
 
 	a.httpServer = &http.Server{
 		Addr:         a.serviceProvider.HTTPConfig().Address(),
@@ -78,11 +81,12 @@ func (a *App) initHTTPServer(_ context.Context) error {
 	return nil
 }
 
+func (a *App) initSubscriptionQueue(ctx context.Context) {
+	a.serviceProvider.OrderSubscriptions().Subscribe(ctx)
+
+}
+
 func (a *App) connectDB(ctx context.Context) error {
-	//db := storage.NewConnection(a.serviceProvider.DBConfig())
-	//a.serviceProvider.dbService = db
-	//
-	//return nil
 	db, err := postgresql.NewClient(ctx, a.serviceProvider.DBConfig())
 
 	if err != nil {
@@ -94,7 +98,18 @@ func (a *App) connectDB(ctx context.Context) error {
 	return nil
 }
 
-func (a *App) initHttpRoutesAndMiddleware() *chi.Mux {
+func (a *App) connectQueue(ctx context.Context) error {
+	sc, err := nats_streaming.NewClient(ctx, a.serviceProvider.NatsStreamingConfig())
+	if err != nil {
+		return nil
+	}
+
+	a.serviceProvider.queueService = *sc
+	a.initSubscriptionQueue(ctx)
+	return nil
+}
+
+func (a *App) initHttpRoutesAndMiddleware(ctx context.Context) *chi.Mux {
 	router := chi.NewRouter()
 
 	router.Use(middleware.RequestID)
@@ -102,7 +117,12 @@ func (a *App) initHttpRoutesAndMiddleware() *chi.Mux {
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
 
-	order.RegisterRoutes(router, a.serviceProvider.OrderImpl())
+	router.Use(cors.Handler(cors.Options{
+		AllowedOrigins: []string{"https://*", "http://*"},
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+	}))
+
+	order.RegisterRoutes(ctx, router, a.serviceProvider.OrderImpl())
 
 	return router
 }
