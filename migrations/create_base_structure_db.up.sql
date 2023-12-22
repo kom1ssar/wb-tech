@@ -1,6 +1,6 @@
 CREATE TABLE orders
 (
-    order_uid TEXT PRIMARY KEY,
+    order_uid TEXT UNIQUE PRIMARY KEY,
     track_number TEXT NOT NULL ,
     entry TEXT NOT NULL ,
     locale TEXT NOT NULL ,
@@ -11,7 +11,7 @@ CREATE TABLE orders
     sm_id INT NOT NULL ,
     date_created TIMESTAMPTZ NOT NULL ,
     oof_shard TEXT NOT NULL
-);1
+);
 
 CREATE TABLE delivery
 (
