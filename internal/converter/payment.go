@@ -13,7 +13,7 @@ func PaymentToModelFromDesc(payment *desc.Payment) *model.Payment {
 		Transaction:  payment.Transaction,
 		Provider:     payment.Provider,
 		Amount:       int(payment.Amount),
-		PaymentDt:    payment.PaymentDt.AsTime(),
+		PaymentDt:    int(payment.PaymentDt),
 		Bank:         payment.Bank,
 		DeliveryCost: int(payment.DeliveryCost),
 		GoodsTotal:   int(payment.GoodsTotal),

@@ -23,7 +23,7 @@ message Payment{
   string transaction = 3;
   string  provider = 4;
   int64 amount = 5;
-  google.protobuf.Timestamp  payment_dt = 6;
+  int64  payment_dt = 6;
   string bank = 7;
   int64 delivery_cost = 8;
   int64 goods_total = 9;
